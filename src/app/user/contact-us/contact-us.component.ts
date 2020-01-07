@@ -1,11 +1,13 @@
-import { Component, OnInit,ElementRef, ViewChild } from '@angular/core';
-import {UserService} from './../user-service';
-import {FormBuilder,FormGroup,FormControl} from '@angular/forms';
-import {COMMA, ENTER} from '@angular/cdk/keycodes';
-import {MatAutocompleteSelectedEvent, MatAutocomplete} from '@angular/material/autocomplete';
-import {MatChipInputEvent} from '@angular/material/chips';
-import {Observable} from 'rxjs';
-import {map, startWith} from 'rxjs/operators';
+import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
+import { UserService } from './../user-service';
+import { FormBuilder, FormGroup, FormControl } from '@angular/forms';
+import { COMMA, ENTER } from '@angular/cdk/keycodes';
+import { MatAutocompleteSelectedEvent, MatAutocomplete } from '@angular/material/autocomplete';
+import { MatChipInputEvent } from '@angular/material/chips';
+import { Observable } from 'rxjs';
+import { map, startWith } from 'rxjs/operators';
+import { DatePipe } from '@angular/common';
+import { Validators } from '@angular/forms'
 
 @Component({
   selector: 'app-contact-us',
@@ -15,92 +17,109 @@ import {map, startWith} from 'rxjs/operators';
 export class ContactUsComponent implements OnInit {
   selectedValue: string;
   selectedCountry;
+  sel = "oooooo";
+  selectedDisableCountry = new FormControl('red');
   countryList;
-  contactForm  = this.fb.group({
-    name:[''],
-    email:[''],
-    minimal :[''],
-    disable:[''],
-    disabledResult:[''],
-    phone:[''],
+  re = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
+  mobNumberPattern = "^((\\+91-?)|0)?[0-9]{10}$"
+  contactForm = this.fb.group({
+    name: ['', [Validators.required]],
+    email: ['', [
+      Validators.required,
+      Validators.pattern(this.re)
+    ]],
+    minimal: [''],
+    disable: [''],
+    disabledResult: [''],
+    phone: ['', [Validators.required, Validators.pattern(this.mobNumberPattern)]],
     date: [''],
-    multiple:['']
+    multiple: ['']
   })
-
   visible = true;
   selectable = true;
   removable = true;
   addOnBlur = true;
   separatorKeysCodes: number[] = [ENTER, COMMA];
-  fruitCtrl = new FormControl();
+  multiConCtrl = new FormControl();
   disCountry = new FormControl();
-  filteredFruits: Observable<string[]>;
-  countries:Observable<string[]>;
-  fruits: string[] = ['Lemon'];
-  allFruits: string[] = ['Apple', 'Lemon', 'Lime', 'Orange', 'Strawberry'];
-  @ViewChild('fruitInput') fruitInput: ElementRef<HTMLInputElement>;
+  filteredMulContries: Observable<string[]>;
+  countries: Observable<string[]>;
+  mulCountryList: string[] = ['India'];
+
+  @ViewChild('countryInput') countryInput: ElementRef<HTMLInputElement>;
+
   @ViewChild('auto') matAutocomplete: MatAutocomplete;
 
-  constructor(private userService:UserService,
-              private fb:FormBuilder) { }
+  constructor(private userService: UserService,
+    private fb: FormBuilder,
+    private datePipe: DatePipe) { }
+
+  get email() { return this.contactForm.get('email'); }
+  get name() { return this.contactForm.get('name'); }
+  get phone() { return this.contactForm.get('phone'); }
 
   ngOnInit() {
-    console.log(this.userService.getCountryList(),"ffff");
+    console.log(this.userService.getCountryList(), "ffff");
     this.countryList = this.userService.getCountryList();
-    console.log(this.selectedCountry);
+
+    const toSelect = this.countryList.find(c => c == 'Alabama')
+    this.contactForm.get('disable').setValue(toSelect);
 
     this.countries = this.disCountry.valueChanges.pipe(
       startWith(null),
-      map((fruit: string | null) => fruit ? this._filter(fruit) : this.countryList.slice()));
-  
+      map((coun: string | null) => coun ? this._filter(coun) : this.countryList.slice()));
 
-    this.filteredFruits = this.fruitCtrl.valueChanges.pipe(
+    this.filteredMulContries = this.multiConCtrl.valueChanges.pipe(
       startWith(null),
-      map((fruit: string | null) => fruit ? this._filter(fruit) : this.allFruits.slice()));
+      map((coun: string | null) => coun ? this._filter(coun) : this.countryList.slice()));
   }
-
   add(event: MatChipInputEvent): void {
-    // Add fruit only when MatAutocomplete is not open
-    // To make sure this does not conflict with OptionSelected Event
+
     if (!this.matAutocomplete.isOpen) {
       const input = event.input;
       const value = event.value;
-
-      // Add our fruit
       if ((value || '').trim()) {
-        this.fruits.push(value.trim());
+        this.mulCountryList.push(value.trim());
       }
-      // Reset the input value
       if (input) {
         input.value = '';
       }
-      this.fruitCtrl.setValue(null);
+      this.multiConCtrl.setValue(null);
     }
+    console.log(this.mulCountryList);
   }
   remove(fruit: string): void {
-    const index = this.fruits.indexOf(fruit);
+    const index = this.mulCountryList.indexOf(fruit);
+
     if (index >= 0) {
-      this.fruits.splice(index, 1);
+      this.mulCountryList.splice(index, 1);
     }
-  } 
-  selected(event: MatAutocompleteSelectedEvent,auto?): void {
-    if(auto==1){
-      this.contactForm.value.disabledResult= event.option.viewValue;
+    console.log(this.mulCountryList);
+  }
+  selected(event: MatAutocompleteSelectedEvent, auto?): void {
+    if (auto == 1) {
+      this.contactForm.value.disabledResult = event.option.viewValue;
     }
-    else{
-      this.fruits.push(event.option.viewValue);
-      this.fruitInput.nativeElement.value = '';
-      this.fruitCtrl.setValue(null);
-      console.log(this.fruits,"fruits")
+    else {
+      this.mulCountryList.push(event.option.viewValue);
+      this.countryInput.nativeElement.value = '';
+      this.multiConCtrl.setValue(null);
+      console.log(this.mulCountryList);
+
     }
-   
   }
   private _filter(value: string): string[] {
     const filterValue = value.toLowerCase();
-    return this.allFruits.filter(fruit => fruit.toLowerCase().indexOf(filterValue) === 0);
+    return this.countryList.filter(coun => coun.toLowerCase().indexOf(filterValue) === 0);
   }
-  onSubmit(form){
+  onSubmit(form) {
+    this.contactForm.value.date = this.datePipe.transform(this.contactForm.value.date, "dd-MM-yyyy");
+    this.contactForm.value.multiple = this.mulCountryList;
+    // console.log(ddMMyyyy);
     console.log(this.contactForm.value);
+    let formData = {
+
+    }
   }
 
 }

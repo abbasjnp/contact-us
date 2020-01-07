@@ -1,0 +1,9 @@
+.has-danger{
+  border:1px solid red;
+}
+.btn-deactivate:disabled{
+    background:#979797;
+    }
+    .invalid{
+        color:red;
+    }

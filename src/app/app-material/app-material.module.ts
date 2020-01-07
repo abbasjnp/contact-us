@@ -9,7 +9,9 @@ import {
   MatIconModule,
   MatChipsModule,
   MatFormFieldModule,
-  MatInputModule
+  MatInputModule,
+  MatDatepickerModule,
+  MatNativeDateModule
 } from '@angular/material';
 @NgModule({
   declarations: [],
@@ -22,7 +24,9 @@ import {
     MatIconModule,
     MatChipsModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    MatDatepickerModule,
+    MatNativeDateModule
 
   ],
   exports :[
@@ -33,7 +37,9 @@ import {
     MatIconModule,
     MatChipsModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    MatDatepickerModule,
+    MatNativeDateModule 
   ]
 })
 export class AppMaterialModule { }
